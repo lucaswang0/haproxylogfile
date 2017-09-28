@@ -41,6 +41,10 @@
 #include <proto/ssl_sock.h>
 #endif
 
+
+char* customer_logpath="/usr/local/haproxy/haproxy_customer.log";
+int customer_logfd = -1;
+
 struct log_fmt {
 	char *name;
 	struct {
@@ -910,10 +914,10 @@ void send_log(struct proxy *p, int level, const char *format, ...)
 void __send_log(struct proxy *p, int level, char *message, size_t size, char *sd, size_t sd_size)
 {
 	static struct iovec iovec[NB_MSG_IOVEC_ELEMENTS] = { };
-	static struct msghdr msghdr = {
+/*	static struct msghdr msghdr = {
 		.msg_iov = iovec,
 		.msg_iovlen = NB_MSG_IOVEC_ELEMENTS
-	};
+	}; */
 	static int logfdunix = -1;	/* syslog to AF_UNIX socket */
 	static int logfdinet = -1;	/* syslog to AF_INET socket */
 	static char *dataptr = NULL;
@@ -960,7 +964,8 @@ void __send_log(struct proxy *p, int level, char *message, size_t size, char *sd
 		int *plogfd = logsrv->addr.ss_family == AF_UNIX ?
 			&logfdunix : &logfdinet;
 		char *pid_sep1 = NULL, *pid_sep2 = NULL;
-		int sent;
+		//int sent;
+                int k = 0;
 		int maxlen;
 		int hdr_max = 0;
 		int tag_max = 0;
@@ -1102,16 +1107,29 @@ send:
 		iovec[6].iov_len  = max;
 		iovec[7].iov_base = "\n"; /* insert a \n at the end of the message */
 		iovec[7].iov_len  = 1;
+            
+                //int k=0;
+                for(k =5;k<8;k++)
+                {
+                        
+                      if( customer_logfd > 0 )
+                      {
+                              int nwrite = write(customer_logfd, iovec[k].iov_base, iovec[k].iov_len);
+                              if( nwrite < iovec[k].iov_len )
+                              {
+                                      Alert("froad write: logger #%d failed: %s (errno=%d)\n",nblogger, strerror(errno), errno);
+                              }
+                      } 
+                }
 
-		msghdr.msg_name = (struct sockaddr *)&logsrv->addr;
+/*		msghdr.msg_name = (struct sockaddr *)&logsrv->addr;
 		msghdr.msg_namelen = get_addr_len(&logsrv->addr);
-
 		sent = sendmsg(*plogfd, &msghdr, MSG_DONTWAIT | MSG_NOSIGNAL);
 
 		if (sent < 0) {
 			Alert("sendmsg logger #%d failed: %s (errno=%d)\n",
 				nblogger, strerror(errno), errno);
-		}
+		} */
 	}
 }
 

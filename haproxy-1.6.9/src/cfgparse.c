@@ -1656,6 +1656,18 @@ int cfg_parse_global(const char *file, int linenum, char **args, int kwm)
 
 		LIST_ADDQ(&global.logsrvs, &logsrv->list);
 	}
+        else if(!strcmp(args[0], "customer-log"))
+        {
+               if (*(args[1]))
+               {
+                        customer_logpath = strdup(args[1]);
+               }else
+               {
+                        Alert("parsing customer_logpath err,no path \n");
+                        err_code |= ERR_ALERT | ERR_FATAL;
+                        goto out;
+               }
+        }
 	else if (!strcmp(args[0], "log-send-hostname")) { /* set the hostname in syslog header */
 		char *name;
 

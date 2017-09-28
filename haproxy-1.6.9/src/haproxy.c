@@ -779,6 +779,12 @@ void init(int argc, char **argv)
 			exit(1);
 	}
 
+
+        customer_logfd = open(customer_logpath,O_CREAT|O_RDWR|O_APPEND,0);
+        if(  customer_logfd  < 1) {
+              Alert("Fatal errors found in open customer_logpath:%s.\n",customer_logpath);
+        }
+
 	pattern_finalize_config();
 #if (defined SSL_CTRL_SET_TLSEXT_TICKET_KEY_CB && TLS_TICKETS_NO > 0)
 	tlskeys_finalize_config();
@@ -1934,6 +1940,8 @@ int main(int argc, char **argv)
 
 	/* Do some cleanup */ 
 	deinit();
+
+        close(customer_logfd); 
     
 	exit(0);
 }

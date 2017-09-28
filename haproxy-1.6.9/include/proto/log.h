@@ -47,6 +47,8 @@ extern char *logheader_rfc5424;
 extern char *logline;
 extern char *logline_rfc5424;
 
+extern int customer_logfd;
+extern char* customer_logpath;
 
 int build_logline(struct stream *s, char *dst, size_t maxsize, struct list *list_format);
 
